@@ -20,13 +20,19 @@ pn.extension('tabulator')
 
 
 #========================================================================
-#some default arguments should go here
-# add a dark/light mode toggle
-# default_cwd() = ''
-# default_mz_vals = ''
-# atd slicing variable
-# plot colors
+#default current working directory - relative to root
+DEF_CWD = '/Documents/GUI Testing'
 
+#default m/z ranges to extract XICs from
+DEF_MZ_VALS = [[298.0, 302.0], [354.0, 357.0], [410.0, 413.0],
+               [466.0, 469.0], [578.0, 582.0], [690.0, 694.0]]
+
+#slicing off large values in frequency domain post-FT
+ATD_SLICE = 30
+
+#color palettes for XIC and ATD plots - see seaborn color palettes
+XIC_COLORS = 'magma'
+ATD_COLORS = 'icefire_r'
 
 #go through and change enable/disable options
 #clear all plots when appropriate
@@ -129,7 +135,7 @@ xicTabs = pn.Tabs(('curxic',xicPane))
 
 
 
-file_input = pn.widgets.FileSelector('~/Documents',
+file_input = pn.widgets.FileSelector('~'+DEF_CWD,
                                      refresh_period=5000,
                                      height = 325)
 
@@ -186,8 +192,7 @@ file_load_row = pn.Row(load_mz_button, ms_type_radio)
 mzranges_input = pn.widgets.ArrayInput(
     name='XICs for the following m/z ranges will be extracted:',
     max_array_size = 20,
-    value = np.array([[298.0, 302.0], [354.0, 357.0], [410.0, 413.0],
-                      [466.0, 469.0], [578.0, 582.0], [690.0, 694.0]]),
+    value = np.array(DEF_MZ_VALS),
     sizing_mode='stretch_width')
 
 add_xlims_button = pn.widgets.Button(name='Add current m/z range to list',
@@ -211,13 +216,10 @@ def add_mz_xlims(event):
 add_xlims_button.on_click(add_mz_xlims)
 
 
-xic_color_gen = sns.color_palette('magma', 10).as_hex()
+xic_color_gen = sns.color_palette(XIC_COLORS, 10).as_hex()
 xic_colors = itertools.cycle(xic_color_gen)
 xic_trace_dict = {}
 monoPeak_dict = {}
-
-
-# set x axis label ==========
 
 
 def extract_XICs(event):
@@ -260,6 +262,11 @@ def extract_XICs(event):
                                  height=200,
                                  margin=dict(t=5,r=5,b=5,l=5))
 
+        cur_xicFig.update_xaxes(title='Time (s)',
+                                showline=True,
+                                linecolor='black')
+
+        cur_xicFig.update_yaxes(showline=True, linecolor='black')
 
         cur_line = go.Scatter(x=xic_x, y=xic_y, name = xicKey,
                                   line=dict(color=next(xic_colors), width=1))
@@ -317,7 +324,6 @@ xic_mods_row = pn.Row(apdz_checkbox, apdz_type,
 xic_mod_div = pn.layout.Divider(margin=(5,5,0,22))
 
 
-#set x axis labels =====
 def xic_changer(event):
     for curTab in xicTabs:
         curDataContainer = curTab.object.data[0]
@@ -333,6 +339,7 @@ def xic_changer(event):
 
         if zpad_checkbox.value:
             curDataContainer.x = None
+            curDataContainer.figure.update_xaxes(title='Bins')
 
         curDataContainer.y = y_mod
 
@@ -344,8 +351,6 @@ def xic_changer(event):
 xic_change_button.on_click(xic_changer)
 
 
-
-#set x axis labels ========
 def xic_resetter(event):
     for curTab in xicTabs:
         curDataContainer = curTab.object.data[0]
@@ -354,6 +359,9 @@ def xic_resetter(event):
 
         curDataContainer.x = x_orig
         curDataContainer.y = y_orig
+
+
+        curDataContainer.figure.update_xaxes(title='Time (s)')
 
     xic_change_button.disabled = False
     xic_reset_button.disabled = True
@@ -427,7 +435,7 @@ aFT_checkbox = pn.widgets.Checkbox(name='aFT',
                                    disabled=True)
 
 
-palette_gen = sns.color_palette('icefire_r', 10).as_hex()
+palette_gen = sns.color_palette(ATD_COLORS, 10).as_hex()
 atd_colors = itertools.cycle(palette_gen)
 
 atd_traces = {}
@@ -455,11 +463,11 @@ def ATD_plotter(event):
                                   tOffset = tOffset_input.value)
 
         if only_FT_checkbox.value:
-            FT_x = ft_x[30:] #keeping as frequency domain
+            FT_x = ft_x[ATD_SLICE:] #keeping as frequency domain
         else:
-            FT_x = (ft_x[30:]/sRate)*1000 #converting to time (ms)
+            FT_x = (ft_x[ATD_SLICE:]/sRate)*1000 #converting to time (ms)
 
-        FT_y = ft_y[30:]
+        FT_y = ft_y[ATD_SLICE:]
 
         atd_traces[key] = (FT_x, FT_y)
 
