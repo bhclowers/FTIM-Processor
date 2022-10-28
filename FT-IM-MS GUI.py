@@ -21,7 +21,7 @@ pn.extension('tabulator')
 
 #========================================================================
 #default current working directory - relative to root
-DEF_CWD = '/Documents/GUI Testing'
+DEF_CWD = '~/Documents/GUI Testing'
 
 #default m/z ranges to extract XICs from
 DEF_MZ_VALS = [[298.0, 302.0], [354.0, 357.0], [410.0, 413.0],
@@ -135,7 +135,7 @@ xicTabs = pn.Tabs(('curxic',xicPane))
 
 
 
-file_input = pn.widgets.FileSelector('~'+DEF_CWD,
+file_input = pn.widgets.FileSelector(DEF_CWD,
                                      refresh_period=5000,
                                      height = 325)
 
