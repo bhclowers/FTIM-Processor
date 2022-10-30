@@ -1,7 +1,6 @@
 import panel as pn
 import numpy as np
 from pyteomics import mzml
-from scipy import signal
 from scipy.signal import find_peaks, peak_widths
 from scipy.interpolate import UnivariateSpline
 import itertools, os
@@ -655,8 +654,8 @@ plot_atd_row = pn.Row(plot_ATD_button,
                       atd_reset_button,
                       fits_dropdown)
 
-ft_opts_col = pn.Column(xic_mods_row, xic_mod_div,
-                        expParams_row, plot_atd_row)
+
+ft_opts_col = pn.Column(xic_mods_row, xic_mod_div, expParams_row, plot_atd_row)
 
 
 left_col = pn.Column(file_input, file_load_row, mzPane, mz_opts_col)
@@ -667,6 +666,6 @@ main_grid[0:8, 0:6] = left_col
 main_grid[0:8, 6:15] = right_col
 
 
-
-app = pn.panel(main_tabs)
-server = app.show(threaded=True)
+# app = pn.panel(main_tabs)
+# server = app.show(threaded=True)
+pn.serve(main_tabs)

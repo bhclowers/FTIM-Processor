@@ -322,7 +322,7 @@ def multiFT_data(time, amp, sweepRate, method='FFT', window='hanning',
     time  :  can either be in sec, or min - if min, minBool must be True
     amp   :  amplitude spectrum of interferogram
     method:  determines how data is handled.
-                --> options: 'FFT', 'aFT', 'MT'
+                --> options: 'FFT', 'aFT'
 
     window: (optional, defaults to 'hanning' window)
              type of window to apply to the interpolated signal - available windows shown in 'windic' below
@@ -364,8 +364,6 @@ def multiFT_data(time, amp, sweepRate, method='FFT', window='hanning',
     # this keeps the sampling frequency the same and therefore the nyquist frequency doesnt change
     # interpolation is best left to a spline at the end or zero-padding the time domain signal
 
-    #     print(len(time))
-    #     print(time[-1])
 
     n = int(len(time))  # keep same number of points.
     x_val = np.linspace(time[0], time[-1], n)
@@ -384,15 +382,10 @@ def multiFT_data(time, amp, sweepRate, method='FFT', window='hanning',
 
     if padBool:
         wY = zero_padding(wY, padLen)
-    #         print('pad', len(FTspl))
-    #     plt.plot(wY)
 
     # ---creating x-axis vector---
     N = int(len(wY) / 2)
     mFac = 2 / n  # normalization factor
-
-    #     print('wY vector length:', len(wY))
-    #     print('np.diff(x_val).mean()', np.diff(x_val).mean())
 
     W = np.fft.fftfreq(len(wY), np.diff(x_val).mean())
     X = W[:N]
@@ -407,9 +400,6 @@ def multiFT_data(time, amp, sweepRate, method='FFT', window='hanning',
 
     if method == 'FFT':
         return X, Y ** 2
-    #         final_spl = UnivariateSpline(X, Y, s=0)
-    #         Y2 = final_spl(X2)
-    #         return X2, Y2**2 #interpolated signal post-FFT
 
     if method == 'aFT':
         deltaT = startFreq / sweepRate
@@ -420,9 +410,6 @@ def multiFT_data(time, amp, sweepRate, method='FFT', window='hanning',
         aFT_spec = aFT_spl(
             X2)  # eval spl. at NEW x vector with more points for better fits
         return X2, aFT_spec  # already squared
-
-    if method == 'MT':
-        print('Multi-taper method coming soon...')
 
 
 
