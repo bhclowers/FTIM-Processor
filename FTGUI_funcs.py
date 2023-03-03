@@ -45,7 +45,7 @@ def getXIC(spectra, mzVal, tol=0.05, secondsBool=True):
         return np.array(tIndex), np.array(intens)
 
 
-def loadOrbiMS_v2(fileName, scanStep=0.1):
+def loadOrbiMS_v2(fileName, scanStep=0.01):
     '''
     Loads an orbitrap mzML file for FT-IM Processing.
     As compared to a LTQ, the Orbitrap resolution is obviously much higher resolution which creates a processing problem for display.
@@ -263,13 +263,6 @@ def moCal(dtime, length=17.385, voltage=7860, T=297.7, P=690):
     K0 = K * (P / 760) * (273.15 / T)
 
     return K0
-
-
-
-
-
-
-
 
 
 def XIC_preview(amp, windowBool = False, window='hanning',

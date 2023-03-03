@@ -17,10 +17,10 @@ from CCS_funcs import calcThermalVelocity, calcAlpha, calcTransverseVelCoeff,\
 
 pn.extension('tabulator')
 
-
 #========================================================================
 #default current working directory - relative to root
-DEF_CWD = '~/Documents/GUI Testing'
+# DEF_CWD = '~/Documents/GUI Testing'
+DEF_CWD = '~/Documents'
 
 #default m/z ranges to extract XICs from
 DEF_MZ_VALS = [[298.0, 302.0], [354.0, 357.0], [410.0, 413.0],
@@ -33,8 +33,15 @@ ATD_SLICE = 30
 XIC_COLORS = 'magma'
 ATD_COLORS = 'icefire_r'
 
-#go through and change enable/disable options
-#clear all plots when appropriate
+#first value in frequency sweep, it is generally assumed in FT-IM
+#experiments that the start frequency is 5 Hz, hence the default argument
+#see 'aFT' mode and 'startFreq' argument in "multiFT_data" function
+START_FREQ = 5
+
+#todo go through and change enable/disable options
+#todo clear all plots when appropriate
+#todo add option to normalize the ATD
+#todo add XIC subtraction for better apodization
 
 
 #containers for all content
@@ -140,12 +147,20 @@ file_input = pn.widgets.FileSelector(DEF_CWD,
 
 
 #value argument specifies the default value of the radio buttons
+# ms_type_radio = pn.widgets.RadioBoxGroup(name='Instrument',
+#                                          options=['HiRes', 'Std'],
+#                                          value = 'Std',
+#                                          inline=True,
+#                                          margin = 15,
+#                                          width = 100)
+
 ms_type_radio = pn.widgets.RadioBoxGroup(name='Instrument',
-                                         options=['HiRes', 'Std'],
-                                         value = 'Std',
+                                         options=['.mzML'],
+                                         value = '.mzML',
                                          inline=True,
                                          margin = 15,
                                          width = 100)
+
 
 load_mz_button = pn.widgets.Button(name='Load selected file',
                                    sizing_mode='stretch_width',
@@ -161,11 +176,11 @@ def load_file(event):
     curFile = file_input.value[0]
     fname = os.path.basename(curFile)
 
-    if ms_type_radio.value == 'Std':
-        spectral_data = [s for s in mzml.read(curFile)]
-        mz_x, mz_y = getMS_v2(spectral_data)
+    # if ms_type_radio.value == 'Std':
+    #     spectral_data = [s for s in mzml.read(curFile)]
+    #     mz_x, mz_y = getMS_v2(spectral_data)
 
-    elif ms_type_radio.value == 'HiRes':
+    if ms_type_radio.value == '.mzML':
         mz_x, mz_y, spectral_data = loadOrbiMS_v2(curFile)
 
     current_dataset['DATASET'] = spectral_data
@@ -235,11 +250,11 @@ def extract_XICs(event):
         mzCenter = (mz1+mz2)/2
         mzTol = mz2 - mzCenter
 
-        if ms_type_radio.value == 'Std':
-            xic_x, xic_y = getXIC(current_dataset['DATASET'],
-                                  mzCenter, tol=mzTol)
+        # if ms_type_radio.value == 'Std':
+        #     xic_x, xic_y = getXIC(current_dataset['DATASET'],
+        #                           mzCenter, tol=mzTol)
 
-        elif ms_type_radio.value == 'HiRes':
+        if ms_type_radio.value == '.mzML':
             xic_x, xic_y = getXIC_Orbi(current_dataset['DATASET'],
                                        mzCenter, tol=mzTol)
 
@@ -392,7 +407,7 @@ voltage_input = pn.widgets.FloatInput(name='Voltage (V)',
                                       start=0.1,
                                       end=50000)
 
-temp_input = pn.widgets.FloatInput(name='Temp (C)',
+temp_input = pn.widgets.FloatInput(name='Temperature (C)',
                                    width=120,
                                    value=25.0,
                                    step=1,
@@ -437,6 +452,7 @@ aFT_checkbox = pn.widgets.Checkbox(name='aFT',
 palette_gen = sns.color_palette(ATD_COLORS, 10).as_hex()
 atd_colors = itertools.cycle(palette_gen)
 
+#todo add functionality for aFT
 atd_traces = {}
 def ATD_plotter(event):
     atd_traces.clear()
@@ -459,6 +475,7 @@ def ATD_plotter(event):
                                   window = apdz_type.value,
                                   padBool = zpad_checkbox.value,
                                   padLen = zpad_len_box.value,
+                                  startFreq = START_FREQ,
                                   tOffset = tOffset_input.value)
 
         if only_FT_checkbox.value:
